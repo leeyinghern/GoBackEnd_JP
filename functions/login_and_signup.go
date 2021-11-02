@@ -65,6 +65,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		}
 		cookie, err := r.Cookie("riinsan")
 		if err != nil {
+			// DeleteUserCookie(w, r)
+			// http.Redirect(w, r, "/", http.StatusSeeOther)
 			cookie = CreateNewCookie(w, r)
 		}
 		// Create Session for user when they log in

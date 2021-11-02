@@ -1,43 +1,21 @@
 package functions
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"math/rand"
 	"net/http"
-	"os"
-	"strconv"
 	"strings"
 	"time"
-
-	"github.com/google/uuid"
 )
-
-func CreateNewCookie(w http.ResponseWriter, r *http.Request) *http.Cookie {
-	// Create cookie
-	cookie, err := r.Cookie("riinsan")
-	if err != nil {
-		cookie = &http.Cookie{
-			Name:   "riinsan",
-			Value:  uuid.NewString(),
-			MaxAge: 60,
-		}
-	}
-	http.SetCookie(w, cookie)
-	return cookie
-}
 
 var LoadedQuestions Questions
 
 func Assign_Questions_To_User(w http.ResponseWriter, r *http.Request, QuestionJSON string) *http.Cookie {
 	// Get cookie UUID
 	cookie, err := r.Cookie("riinsan")
-	if err != nil {
+	if err == http.ErrNoCookie {
 		cookie = CreateNewCookie(w, r)
 	}
-
 	// Implement if else to skip the rest of the function
 	if _, ok := VocabUserSessions[UserSessions[cookie.Value]]; ok {
 		fmt.Println("Vocab User Session detected. Reading from previously assigned map")
@@ -46,30 +24,22 @@ func Assign_Questions_To_User(w http.ResponseWriter, r *http.Request, QuestionJS
 		fmt.Println("Trans User Session detected. Reading from previously assigned map")
 		return cookie
 	} else {
-		questions_json, err := os.Open(fmt.Sprintf("./questionbank/vocab/%s.json", QuestionJSON))
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer questions_json.Close()
-		// Assigns questions to user and returns pointer to cookie
-		// Read opened JSON as a byte array
-		byteValue, _ := ioutil.ReadAll(questions_json)
-
-		// Unmarshal the JSON
-		json.Unmarshal(byteValue, &LoadedQuestions)
-
+		filepath := fmt.Sprintf("./questionbank/vocab/%s.json", QuestionJSON)
+		read_json(filepath, &LoadedQuestions)
 		// List of questions
 		QuestionList := LoadedQuestions.QuestionList
 		var RandomQuestionNumbers []int
+
 		rand.NewSource(time.Now().Unix())
 
 		// Generate 5 random, non-overlapping question numbers
 		for len(RandomQuestionNumbers) < 5 {
-			r_n := rand.Intn(5)
+			r_n := rand.Intn(len(QuestionList))
 			if CheckIfOverlappingQuestionNumber(RandomQuestionNumbers, r_n) {
 				RandomQuestionNumbers = append(RandomQuestionNumbers, r_n)
 			}
 		}
+		fmt.Println("this is the randomly generated question index", RandomQuestionNumbers)
 
 		SelectedQuestions := []Question{}
 		for _, val := range RandomQuestionNumbers {
@@ -80,10 +50,9 @@ func Assign_Questions_To_User(w http.ResponseWriter, r *http.Request, QuestionJS
 		if QuestionJSON == "vocab_qns" {
 			fmt.Println("AssignQnsToUser is creating a new vocab user session")
 			UserVocabQuestions := Questions{
-				QuestionList: SelectedQuestions,
-				QuestionType: LoadedQuestions.QuestionType,
-				WrongAnswers: []int{},
-				// UserAnswers:     []string{},
+				QuestionList:    SelectedQuestions,
+				QuestionType:    LoadedQuestions.QuestionType,
+				WrongAnswers:    map[int]string{},
 				CurrentQuestion: 0,
 			}
 			// Create new vocab user session
@@ -113,8 +82,6 @@ func CacheUserAnswer(w http.ResponseWriter, r *http.Request, cookie *http.Cookie
 	// Handle User Session values and button
 	UserSession := *usersession
 	UserQuestionNumber := *userquestionnumber
-	VocabQuestions := *vocabquestions
-	VocabUserSessions[UserSession].CurrentQuestion = UserQuestionNumber + 1
 
 	var button_val string
 	if UserQuestionNumber == 4 {
@@ -123,58 +90,30 @@ func CacheUserAnswer(w http.ResponseWriter, r *http.Request, cookie *http.Cookie
 		button_val = "Next Question"
 	}
 
-	//TODO: REFACTOR THIS INTO SEPERATE FUNCTION
 	// If user has submitted an answer
-	if QuestionType == "vocab_qns" && r.Method == http.MethodPost {
-		fmt.Println("This is the user answer", r.PostFormValue("user_answer"))
-		UserAnswer := r.PostFormValue("user_answer")
-		CorrectAnswer := QuestionPassed.Question_answer
-		var UserCorrect = false
-		for _, val := range CorrectAnswer {
-			if val == UserAnswer {
-				UserCorrect = true
-			}
-		}
-		if !UserCorrect {
-			VocabUserSessions[UserSession].WrongAnswers = append(VocabUserSessions[UserSession].WrongAnswers, QuestionPassed.Question_number)
-		}
-		CurrentUserQuestion := VocabQuestions[UserQuestionNumber]
-
-		NextQuestion := map[string]string{
-			"question": CurrentUserQuestion.Question,
-			"next_url": fmt.Sprintf("location.href='/vocab/%s';", strconv.Itoa(UserQuestionNumber)),
-			// "question_number": fmt.Sprint(UserQuestionNumber),
-			"image":        CurrentUserQuestion.Image_link,
-			"button_value": button_val,
-		}
-
-		TPL.ExecuteTemplate(w, "vocab.html", NextQuestion)
-	} else {
-		// Serve the first question to the user
-		CurrentUserQuestion := VocabQuestions[UserQuestionNumber]
-		FirstQuestion := map[string]string{
-			"question": CurrentUserQuestion.Question,
-			"next_url": fmt.Sprintf("location.href='/vocab/%s';", strconv.Itoa(UserQuestionNumber)),
-			// "question_number": fmt.Sprint(UserQuestionNumber),
-			"image":        CurrentUserQuestion.Image_link,
-			"button_value": button_val,
-		}
-		// Render template here
-		TPL.ExecuteTemplate(w, "vocab.html", FirstQuestion)
+	if QuestionType == "vocab_qns" {
+		VocabQuestions := *vocabquestions
+		VocabUserSessions[UserSession].CurrentQuestion = UserQuestionNumber + 1
+		CacheVocabAnswer(&w, r, VocabQuestions, QuestionType, QuestionPassed,
+			UserSession, button_val, UserQuestionNumber)
 	}
 }
 
 func DisplayGrade(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("riinsan")
-	if err != nil {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+	if err != nil || cookie == nil {
+		cookie = CreateNewCookie(w, r)
 	}
 	UserSession := UserSessions[cookie.Value]
 	if r.URL.Path == "/grade/vocab" {
 		VocabUserSession := VocabUserSessions[UserSession]
-		UserVocabWrongAnswerIndex := VocabUserSession.WrongAnswers
+		UserVocabWrongAnswerIndex := []int{}
+		for question_number := range VocabUserSession.WrongAnswers {
+			UserVocabWrongAnswerIndex = append(UserVocabWrongAnswerIndex, question_number-1)
+		}
 		QuestionList := VocabUserSession.QuestionList
 		UserVocabWrongAnswers := map[string][]string{}
+		fmt.Println("This is it", UserVocabWrongAnswerIndex)
 		for _, val := range UserVocabWrongAnswerIndex {
 			UserVocabWrongAnswers["wrong_question"] = append(UserVocabWrongAnswers["wrong_question"], QuestionList[val].Question)
 			UserVocabWrongAnswers["image_link"] = append(UserVocabWrongAnswers["image_link"], QuestionList[val].Image_link)

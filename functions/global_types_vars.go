@@ -3,11 +3,10 @@ package functions
 import "html/template"
 
 type Questions struct {
-	QuestionList []Question `json:"questions"`
-	QuestionType string     `json:"question_type"`
-	WrongAnswers []int
-	// UserAnswers     []string
-	CurrentQuestion int //used to track the current question user is on
+	QuestionList    []Question     `json:"questions"`
+	QuestionType    string         `json:"question_type"`
+	WrongAnswers    map[int]string // Wrong answer takes in assigned qn number + user_ans
+	CurrentQuestion int            //used to track the current question user is on
 }
 
 type Question struct {

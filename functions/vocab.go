@@ -3,6 +3,7 @@ package functions
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 )
 
 func ServeVocabQuestionToUser(w http.ResponseWriter, r *http.Request) {
@@ -21,8 +22,6 @@ func ServeVocabQuestionToUser(w http.ResponseWriter, r *http.Request) {
 	UserQuestionNumber := VocabUserSessions[UserSession].CurrentQuestion
 	VocabQuestions := VocabUserSessions[UserSession].QuestionList
 
-	fmt.Println("Current user question number:", UserQuestionNumber)
-
 	if UserQuestionNumber <= 4 {
 		CurrentUserQuestion := VocabQuestions[UserQuestionNumber]
 		CacheUserAnswer(w, r, cookie, &CurrentUserQuestion, &UserSession, &UserQuestionNumber, &VocabQuestions, "vocab_qns")
@@ -37,9 +36,47 @@ func ServeVocabQuestionToUser(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if !UserCorrect {
-			VocabUserSessions[UserSession].WrongAnswers = append(VocabUserSessions[UserSession].WrongAnswers, VocabQuestions[UserQuestionNumber-1].Question_number)
+			VocabUserSessions[UserSession].WrongAnswers[UserQuestionNumber] = UserAnswer
 		}
 		http.Redirect(w, r, "/grade/vocab", http.StatusSeeOther)
 	}
 
+}
+
+func CacheVocabAnswer(w *http.ResponseWriter, r *http.Request, VocabQuestions []Question, QuestionType string, QuestionPassed *Question,
+	UserSession string, button_val string, UserQuestionNumber int) {
+	if r.Method == http.MethodPost {
+		UserAnswer := r.PostFormValue("user_answer")
+		CorrectAnswer := QuestionPassed.Question_answer
+		var UserCorrect = false
+		for _, val := range CorrectAnswer {
+			if val == UserAnswer {
+				UserCorrect = true
+			}
+		}
+		if !UserCorrect {
+			VocabUserSessions[UserSession].WrongAnswers[UserQuestionNumber] = UserAnswer
+		}
+		CurrentUserQuestion := VocabQuestions[UserQuestionNumber]
+
+		NextQuestion := map[string]string{
+			"question":     CurrentUserQuestion.Question,
+			"next_url":     fmt.Sprintf("location.href='/vocab/%s';", strconv.Itoa(UserQuestionNumber)),
+			"image":        CurrentUserQuestion.Image_link,
+			"button_value": button_val,
+		}
+
+		TPL.ExecuteTemplate(*w, "vocab.html", NextQuestion)
+	} else {
+		// Serve the first question to the user
+		CurrentUserQuestion := VocabQuestions[UserQuestionNumber]
+		FirstQuestion := map[string]string{
+			"question":     CurrentUserQuestion.Question,
+			"next_url":     fmt.Sprintf("location.href='/vocab/%s';", strconv.Itoa(UserQuestionNumber)),
+			"image":        CurrentUserQuestion.Image_link,
+			"button_value": button_val,
+		}
+		// Render template here
+		TPL.ExecuteTemplate(*w, "vocab.html", FirstQuestion)
+	}
 }
