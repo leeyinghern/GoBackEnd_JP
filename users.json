@@ -1,0 +1,19 @@
+{
+    "users": [
+        {
+            "Email": "JDJhJDEwJFE2c1VnQnNRMHI3WC5taWM0dkF1bC5IcmRGcEF1NnhPaGFLUi9Hckx4MkVRSUZyV0tROVhl",
+            "Password": "JDJhJDEwJGFyRDVUQkdvODhNdi95Ry42M2l3RGVhUnIzL0czUjZ1OHNzbVZjMUpCZk5yRm9SQ2pvdThX",
+            "Is_Admin": true
+        },
+        {
+            "Email": "JDJhJDEwJENWMFdYMGRkdktEN1NSLlRWYWZTdU9CaGozdk1FRWljaGMvLzRDNW93SjNDZzZweEV2VlZl",
+            "Password": "JDJhJDEwJFhLcmxIWVFXcXNTLkRQR0Z3OVF0YXV5YjhJZy9KWkUvTHNsUFp1dDRYN2t4RjNFY29MUEYy",
+            "Is_Admin": false
+        },
+        {
+            "Email": "JDJhJDEwJEhmdTdVM2VHenZKajI3LmlZeHFCQWV1V1R6a3VUY0R2VFguZ1F5ZmE2bUVMbk4wY3Q5Tkp5",
+            "Password": "JDJhJDEwJGJGdzZuM2xSaVZpbU5aMXNNUmdYQmVlNzljbDdBLkV0YjRKZWx3MWI4MU1DWXhzZ3ltaFpt",
+            "Is_Admin": false
+        }
+    ]
+}

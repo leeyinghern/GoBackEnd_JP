@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .content  {
+            margin: 0;
+            position: absolute;               
+            top: 30%;                         
+            transform: translate(0, -50%);
+            left: 40%;
+            margin-right:-50%;
+        }   
+    </style>
+</head>
+<body>
+    <div class="content" style='margin-left:auto;vertical-align: middle;'>
+        <form  method = "post" action="/login">
+            <input type="email" placeholder="Enter your Email" name="email">
+            <input type="password" placeholder = "Enter Password" name="password">
+            <input type="submit"  placeholder = "Login">
+        </form>
+        <h4>Don't have an account? Sign up <a href="/signup"> here</a> </h4> 
+    </div>
+</body>
+</html>
