@@ -9,7 +9,9 @@
 <body>
     <center>
         Your Grade is here
-        {{.}}
+        {{range .}}
+            <li>{{.}}</li>
+        {{end}}
     </center>
     
 

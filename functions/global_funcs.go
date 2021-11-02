@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -104,13 +105,17 @@ func ServeQuestionsToUser(w http.ResponseWriter, r *http.Request, QuestionType s
 	}
 }
 
-func CacheUserAnswer(w http.ResponseWriter, r *http.Request, cookie *http.Cookie, QuestionPassed *Question, QuestionType string) {
+// Used to save user answers into their session and index the question object to store
+func CacheUserAnswer(w http.ResponseWriter, r *http.Request, cookie *http.Cookie,
+	QuestionPassed *Question, usersession *string, userquestionnumber *int, vocabquestions *[]Question, QuestionType string) {
 	r.ParseForm()
 
 	// Handle User Session values and button
-	UserSession := UserSessions[cookie.Value]
-	UserQuestionNumber := VocabUserSessions[UserSession].CurrentQuestion
-	VocabQuestions := VocabUserSessions[UserSession].QuestionList
+	UserSession := *usersession
+	UserQuestionNumber := *userquestionnumber
+	VocabQuestions := *vocabquestions
+	VocabUserSessions[UserSession].CurrentQuestion = UserQuestionNumber + 1
+
 	var button_val string
 	if UserQuestionNumber == 4 {
 		button_val = "Submit and check my grade"
@@ -118,9 +123,10 @@ func CacheUserAnswer(w http.ResponseWriter, r *http.Request, cookie *http.Cookie
 		button_val = "Next Question"
 	}
 
+	//TODO: REFACTOR THIS INTO SEPERATE FUNCTION
 	// If user has submitted an answer
 	if QuestionType == "vocab_qns" && r.Method == http.MethodPost {
-		fmt.Println(r.PostFormValue("user_answer"))
+		fmt.Println("This is the user answer", r.PostFormValue("user_answer"))
 		UserAnswer := r.PostFormValue("user_answer")
 		CorrectAnswer := QuestionPassed.Question_answer
 		var UserCorrect = false
@@ -130,27 +136,28 @@ func CacheUserAnswer(w http.ResponseWriter, r *http.Request, cookie *http.Cookie
 			}
 		}
 		if !UserCorrect {
-			VocabUserSessions[UserSessions[cookie.Value]].WrongAnswers = append(VocabUserSessions[UserSessions[cookie.Value]].WrongAnswers, QuestionPassed.Question_number)
+			VocabUserSessions[UserSession].WrongAnswers = append(VocabUserSessions[UserSession].WrongAnswers, QuestionPassed.Question_number)
 		}
 		CurrentUserQuestion := VocabQuestions[UserQuestionNumber]
-		VocabUserSessions[UserSession].CurrentQuestion = UserQuestionNumber + 1
+
 		NextQuestion := map[string]string{
-			"question":        CurrentUserQuestion.Question,
-			"question_number": fmt.Sprint(UserQuestionNumber),
-			"image":           CurrentUserQuestion.Image_link,
-			"button_value":    button_val,
+			"question": CurrentUserQuestion.Question,
+			"next_url": fmt.Sprintf("location.href='/vocab/%s';", strconv.Itoa(UserQuestionNumber)),
+			// "question_number": fmt.Sprint(UserQuestionNumber),
+			"image":        CurrentUserQuestion.Image_link,
+			"button_value": button_val,
 		}
 
 		TPL.ExecuteTemplate(w, "vocab.html", NextQuestion)
 	} else {
 		// Serve the first question to the user
 		CurrentUserQuestion := VocabQuestions[UserQuestionNumber]
-		VocabUserSessions[UserSession].CurrentQuestion = UserQuestionNumber + 1
 		FirstQuestion := map[string]string{
-			"question":        CurrentUserQuestion.Question,
-			"question_number": fmt.Sprint(UserQuestionNumber),
-			"image":           CurrentUserQuestion.Image_link,
-			"button_value":    button_val,
+			"question": CurrentUserQuestion.Question,
+			"next_url": fmt.Sprintf("location.href='/vocab/%s';", strconv.Itoa(UserQuestionNumber)),
+			// "question_number": fmt.Sprint(UserQuestionNumber),
+			"image":        CurrentUserQuestion.Image_link,
+			"button_value": button_val,
 		}
 		// Render template here
 		TPL.ExecuteTemplate(w, "vocab.html", FirstQuestion)
