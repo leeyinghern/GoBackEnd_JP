@@ -18,5 +18,6 @@ func SignUpPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func MenuPage(w http.ResponseWriter, r *http.Request) {
+	TakeANewTest(&w, r)
 	TPL.ExecuteTemplate(w, "menu.html", nil)
 }

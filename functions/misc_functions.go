@@ -32,7 +32,7 @@ func read_json(filepath string, loadedqns *Questions) *Questions {
 	byteValue, _ := ioutil.ReadAll(questions_json)
 
 	// Unmarshal the JSON
-	json.Unmarshal(byteValue, &LoadedQuestions)
+	json.Unmarshal(byteValue, loadedqns)
 
 	return loadedqns
 }

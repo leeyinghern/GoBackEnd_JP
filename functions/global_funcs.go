@@ -8,8 +8,6 @@ import (
 	"time"
 )
 
-var LoadedQuestions Questions
-
 func Assign_Questions_To_User(w http.ResponseWriter, r *http.Request, QuestionJSON string) *http.Cookie {
 	// Get cookie UUID
 	cookie, err := r.Cookie("riinsan")
@@ -25,26 +23,11 @@ func Assign_Questions_To_User(w http.ResponseWriter, r *http.Request, QuestionJS
 		return cookie
 	} else {
 		filepath := fmt.Sprintf("./questionbank/vocab/%s.json", QuestionJSON)
+		var LoadedQuestions Questions
 		read_json(filepath, &LoadedQuestions)
 		// List of questions
 		QuestionList := LoadedQuestions.QuestionList
-		var RandomQuestionNumbers []int
-
-		rand.NewSource(time.Now().Unix())
-
-		// Generate 5 random, non-overlapping question numbers
-		for len(RandomQuestionNumbers) < 5 {
-			r_n := rand.Intn(len(QuestionList))
-			if CheckIfOverlappingQuestionNumber(RandomQuestionNumbers, r_n) {
-				RandomQuestionNumbers = append(RandomQuestionNumbers, r_n)
-			}
-		}
-		fmt.Println("this is the randomly generated question index", RandomQuestionNumbers)
-
-		SelectedQuestions := []Question{}
-		for _, val := range RandomQuestionNumbers {
-			SelectedQuestions = append(SelectedQuestions, QuestionList[val])
-		}
+		SelectedQuestions := GenerateNewQuestions(len(QuestionList), QuestionList)
 
 		// Check if session present. If not, then generate 5 qns and return
 		if QuestionJSON == "vocab_qns" {
@@ -121,4 +104,42 @@ func DisplayGrade(w http.ResponseWriter, r *http.Request) {
 		}
 		TPL.ExecuteTemplate(w, "grade.html", UserVocabWrongAnswers)
 	}
+}
+
+func TakeANewTest(w *http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("riinsan")
+	if err != nil {
+		cookie = CreateNewCookie(*w, r)
+	}
+	UserSession := UserSessions[cookie.Value]
+	_, UserVocabSessionCheck := VocabUserSessions[UserSession]
+	_, UserTransSessionCheck := VocabUserSessions[UserSession]
+	if UserVocabSessionCheck {
+		delete(VocabUserSessions, UserSession)
+	}
+	if UserTransSessionCheck {
+		delete(TransUserSessions, UserSession)
+	}
+}
+
+func GenerateNewQuestions(QuestionListLength int, QuestionList []Question) []Question {
+	var RandomQuestionNumbers []int
+
+	//TODO: CHECK IF THIS WORKS
+	rand.NewSource(time.Now().Unix())
+
+	// Generate 5 random, non-overlapping question numbers
+	for len(RandomQuestionNumbers) < 5 {
+		r_n := rand.Intn(QuestionListLength)
+		if CheckIfOverlappingQuestionNumber(RandomQuestionNumbers, r_n) {
+			RandomQuestionNumbers = append(RandomQuestionNumbers, r_n)
+		}
+	}
+	fmt.Println("this is the randomly generated question index", RandomQuestionNumbers)
+
+	SelectedQuestions := []Question{}
+	for _, val := range RandomQuestionNumbers {
+		SelectedQuestions = append(SelectedQuestions, QuestionList[val])
+	}
+	return SelectedQuestions
 }
