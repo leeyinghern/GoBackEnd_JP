@@ -15,6 +15,8 @@ func main() {
 	http.HandleFunc("/menu", functions.MenuPage)
 	http.HandleFunc("/vocab", functions.ServeVocabQuestionToUser)
 	http.HandleFunc("/vocab/", functions.ServeVocabQuestionToUser)
+	http.HandleFunc("/trans", functions.ServeTransQuestionToUser)
+	http.HandleFunc("/trans/", functions.ServeTransQuestionToUser)
 	http.HandleFunc("/grade/", functions.DisplayGrade)
 	// port := os.Getenv("PORT")
 	// if port == "" {

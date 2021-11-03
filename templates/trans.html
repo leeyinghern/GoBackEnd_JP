@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+        <style>
+            .content  {
+                margin: 0;
+                position: absolute;               
+                top: 30%;                         
+                transform: translate(0, -50%);
+                left: 40%;
+                margin-right:-50%;
+            }   
+        </style>
+</head>
+<body>
+    <div class="content">
+        {{$new_url := index . "next_url"}} <br>
+        <br>
+        <h4> 質問: {{index . "question"}}</h4>  <br>
+        <form action="/trans/" method="POST">
+            <h4>ここで答えを書いてください: <input type="text" placeholder="答え" name="user_answer"></h4>
+            <button type="submit" onclick={{$new_url}}> {{index . `button_value`}} </button>
+        </form>
+        <br>
+    </div>
+</body>
+</html>

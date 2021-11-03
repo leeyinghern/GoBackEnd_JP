@@ -22,9 +22,15 @@ func Assign_Questions_To_User(w http.ResponseWriter, r *http.Request, QuestionJS
 		fmt.Println("Trans User Session detected. Reading from previously assigned map")
 		return cookie
 	} else {
-		filepath := fmt.Sprintf("./questionbank/vocab/%s.json", QuestionJSON)
+
+		var filepath string
+		if QuestionJSON == "vocab_qns" {
+			filepath = fmt.Sprintf("./questionbank/vocab/%s.json", QuestionJSON)
+		} else if QuestionJSON == "trans_qns" {
+			filepath = fmt.Sprintf("./questionbank/sentence/%s.json", QuestionJSON)
+		}
 		var LoadedQuestions Questions
-		read_json(filepath, &LoadedQuestions)
+		ReadJson(filepath, &LoadedQuestions)
 		// List of questions
 		QuestionList := LoadedQuestions.QuestionList
 		SelectedQuestions := GenerateNewQuestions(len(QuestionList), QuestionList)
@@ -33,13 +39,23 @@ func Assign_Questions_To_User(w http.ResponseWriter, r *http.Request, QuestionJS
 		if QuestionJSON == "vocab_qns" {
 			fmt.Println("AssignQnsToUser is creating a new vocab user session")
 			UserVocabQuestions := Questions{
-				QuestionList:    SelectedQuestions,
-				QuestionType:    LoadedQuestions.QuestionType,
+				QuestionList: SelectedQuestions,
+				// QuestionType:    LoadedQuestions.QuestionType,
 				WrongAnswers:    map[int]string{},
 				CurrentQuestion: 0,
 			}
 			// Create new vocab user session
 			VocabUserSessions[UserSessions[cookie.Value]] = &UserVocabQuestions
+		} else if QuestionJSON == "trans_qns" {
+			fmt.Println("AssignQnsToUser is creating a new trans user session")
+			UserTransQuestions := Questions{
+				QuestionList: SelectedQuestions,
+				// QuestionType:    LoadedQuestions.QuestionType,
+				WrongAnswers:    map[int]string{},
+				CurrentQuestion: 0,
+			}
+			// Create new vocab user session
+			TransUserSessions[UserSessions[cookie.Value]] = &UserTransQuestions
 		}
 		return cookie
 	}
@@ -47,7 +63,6 @@ func Assign_Questions_To_User(w http.ResponseWriter, r *http.Request, QuestionJS
 }
 
 func ServeQuestionsToUser(w http.ResponseWriter, r *http.Request, QuestionType string) *Questions {
-
 	if QuestionType == "vocab_qns" {
 		cookie := Assign_Questions_To_User(w, r, "vocab_qns")
 		return VocabUserSessions[UserSessions[cookie.Value]]
@@ -59,7 +74,7 @@ func ServeQuestionsToUser(w http.ResponseWriter, r *http.Request, QuestionType s
 
 // Used to save user answers into their session and index the question object to store
 func CacheUserAnswer(w http.ResponseWriter, r *http.Request, cookie *http.Cookie,
-	QuestionPassed *Question, usersession *string, userquestionnumber *int, vocabquestions *[]Question, QuestionType string) {
+	QuestionPassed *Question, usersession *string, userquestionnumber *int, questionslist *[]Question, QuestionType string) {
 	r.ParseForm()
 
 	// Handle User Session values and button
@@ -75,9 +90,14 @@ func CacheUserAnswer(w http.ResponseWriter, r *http.Request, cookie *http.Cookie
 
 	// If user has submitted an answer
 	if QuestionType == "vocab_qns" {
-		VocabQuestions := *vocabquestions
+		VocabQuestions := *questionslist
 		VocabUserSessions[UserSession].CurrentQuestion = UserQuestionNumber + 1
 		CacheVocabAnswer(&w, r, VocabQuestions, QuestionType, QuestionPassed,
+			UserSession, button_val, UserQuestionNumber)
+	} else if QuestionType == "trans_qns" {
+		TransQuestions := *questionslist
+		TransUserSessions[UserSession].CurrentQuestion = UserQuestionNumber + 1
+		CacheTransAnswer(&w, r, TransQuestions, QuestionType, QuestionPassed,
 			UserSession, button_val, UserQuestionNumber)
 	}
 }
@@ -103,6 +123,21 @@ func DisplayGrade(w http.ResponseWriter, r *http.Request) {
 			UserVocabWrongAnswers["correct_answer"] = append(UserVocabWrongAnswers["correct_answer"], strings.Join(QuestionList[val].Question_answer, ", "))
 		}
 		TPL.ExecuteTemplate(w, "grade.html", UserVocabWrongAnswers)
+	} else if r.URL.Path == "/grade/trans" {
+		TransUserSession := TransUserSessions[UserSession]
+		UserTransAnswerIndex := []int{}
+		for question_number := range TransUserSession.WrongAnswers {
+			UserTransAnswerIndex = append(UserTransAnswerIndex, question_number-1)
+		}
+		QuestionList := TransUserSession.QuestionList
+		UserTransAnswers := map[string][]string{}
+		fmt.Println("Trans Questions asked", UserTransAnswerIndex)
+		for _, val := range UserTransAnswerIndex {
+			UserTransAnswers["user_trans_answer"] = append(UserTransAnswers["user_trans_answer"], QuestionList[val].Question)
+			UserTransAnswers["grammar_to_use"] = append(UserTransAnswers["grammar_to_use"], QuestionList[val].TransHelperGrammar)
+			UserTransAnswers["correct_answer"] = append(UserTransAnswers["correct_answer"], strings.Join(QuestionList[val].Question_answer, "/\n "))
+		}
+		TPL.ExecuteTemplate(w, "grade.html", UserTransAnswers)
 	}
 }
 
@@ -113,7 +148,7 @@ func TakeANewTest(w *http.ResponseWriter, r *http.Request) {
 	}
 	UserSession := UserSessions[cookie.Value]
 	_, UserVocabSessionCheck := VocabUserSessions[UserSession]
-	_, UserTransSessionCheck := VocabUserSessions[UserSession]
+	_, UserTransSessionCheck := TransUserSessions[UserSession]
 	if UserVocabSessionCheck {
 		delete(VocabUserSessions, UserSession)
 	}

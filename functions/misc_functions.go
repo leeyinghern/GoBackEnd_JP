@@ -21,7 +21,7 @@ func CheckIfOverlappingQuestionNumber(a []int, n int) bool {
 	return true
 }
 
-func read_json(filepath string, loadedqns *Questions) *Questions {
+func ReadJson(filepath string, loadedqns *Questions) *Questions {
 	questions_json, err := os.Open(filepath)
 	if err != nil {
 		log.Fatal(err)

@@ -1,0 +1,36 @@
+{
+    "questions":[
+    
+        {"question_number":0,
+        "question": "When I went to that shop, I ate delicious sushi and ramen", 
+        "grammar_to_use":"「～と～た」",
+        "helper_words":["あの","行く","や"],
+        "answers":["あの店に行くと、美味しい寿司やラーメンを食べました","あのみせにいくと、おいしいすしやラーメンをたべました" ]
+        },
+        {"question_number":1,
+        "question": "As it seemed like his parents were coming to Japan, when school ended, my friend hurried home", 
+        "grammar_to_use":"「～と～た」",
+        "helper_words":["両親","そうで","終わる","急いで","家","帰りました"],
+        "answers":["両親が日本に来るそうで、友達は学校が終わると、急いで家に帰りました","りょうしんがにほんにくるそうで、がっこうがおわると、ともだちはいそいでいえにかえりました" ]
+        },
+        {"question_number":3,
+        "question": "My hobby is cooking!", 
+        "grammar_to_use":"「～こと～です」",
+        "helper_words":["料理","趣味"],
+        "answers":["私の趣味は料理を作ることです","わたしのしゅみはりょうりをつくることです" ]
+        },
+        {"question_number":4,
+        "question": "You cannot sit here/ You are not allowed to sit here.", 
+        "grammar_to_use":"「～てはいけません」",
+        "helper_words":["座る"],
+        "answers":["ここに座ってはいけませんです","わたしのしゅみはりょうりをつくることです" ]
+        },
+        {"question_number":5,
+        "question": "You cannot eat in the classroom/ You are not allowed to eat in the classroom.", 
+        "grammar_to_use":"「～てはいけません」",
+        "helper_words":["教室","食べる"],
+        "answers":["教室で食べてはいけません","きょうしつでたべてはいけません" ]
+        }
+    ],
+    "question_type" : "trans"
+    }
