@@ -8,13 +8,14 @@
 </head>
 <body>
     <center>
-        Your Grade is here
-        {{range .}}
-            <li>{{.}}</li>
+        {{.QuestionType}}
+        {{if eq .QuestionType "vocab"}}
+            {{template "vocab_result_body" .}}
+        {{else if eq .QuestionType "trans"}}
+            {{template "trans_result_body" .}}
+        {{else}}
+            NOPE
         {{end}}
-        <button onclick="location.href='/menu';"> Take a New Test </button>
     </center>
-    
-
 </body>
 </html>

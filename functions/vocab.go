@@ -9,7 +9,6 @@ import (
 func ServeVocabQuestionToUser(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("riinsan")
 	if err != nil {
-		// CreateUserSession(w, r)
 		cookie = CreateNewCookie(w, r)
 		http.Redirect(w, r, "/menu", http.StatusSeeOther)
 	}
@@ -36,7 +35,7 @@ func ServeVocabQuestionToUser(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if !UserCorrect {
-			VocabUserSessions[UserSession].WrongAnswers[UserQuestionNumber] = UserAnswer
+			VocabUserSessions[UserSession].QuestionList[UserQuestionNumber-1].UserAnswer = UserAnswer
 		}
 		http.Redirect(w, r, "/grade/vocab", http.StatusSeeOther)
 	}
@@ -55,7 +54,7 @@ func CacheVocabAnswer(w *http.ResponseWriter, r *http.Request, VocabQuestions []
 			}
 		}
 		if !UserCorrect {
-			VocabUserSessions[UserSession].WrongAnswers[UserQuestionNumber] = UserAnswer
+			VocabUserSessions[UserSession].QuestionList[UserQuestionNumber-1].UserAnswer = UserAnswer
 		}
 		CurrentUserQuestion := VocabQuestions[UserQuestionNumber]
 

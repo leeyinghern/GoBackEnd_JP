@@ -1,0 +1,17 @@
+{{define "vocab_result_body"}}
+<center>
+    Vocab Grade here <br>
+    {{range index .QuestionData}}
+        <table>
+            <tr>
+                <td>Question: {{.Question}}</td>
+                <td><img src="{{.Image_link}}" alt=""></td>
+                <td>Your Answer: {{.UserAnswer}}</td>
+                <td>Correct Answer: {{.Question_answer}}</td>
+            </tr>
+        </table>
+    {{end}}
+    <button onclick="location.href='/menu';"> Take a New Test </button>
+</center>
+
+{{end}}

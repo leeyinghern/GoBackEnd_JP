@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
-	"strings"
 	"time"
 )
 
@@ -40,8 +39,7 @@ func Assign_Questions_To_User(w http.ResponseWriter, r *http.Request, QuestionJS
 			fmt.Println("AssignQnsToUser is creating a new vocab user session")
 			UserVocabQuestions := Questions{
 				QuestionList: SelectedQuestions,
-				// QuestionType:    LoadedQuestions.QuestionType,
-				WrongAnswers:    map[int]string{},
+				// WrongAnswers:    map[int]string{},
 				CurrentQuestion: 0,
 			}
 			// Create new vocab user session
@@ -51,7 +49,7 @@ func Assign_Questions_To_User(w http.ResponseWriter, r *http.Request, QuestionJS
 			UserTransQuestions := Questions{
 				QuestionList: SelectedQuestions,
 				// QuestionType:    LoadedQuestions.QuestionType,
-				WrongAnswers:    map[int]string{},
+				// WrongAnswers:    map[int]string{},
 				CurrentQuestion: 0,
 			}
 			// Create new vocab user session
@@ -109,35 +107,19 @@ func DisplayGrade(w http.ResponseWriter, r *http.Request) {
 	}
 	UserSession := UserSessions[cookie.Value]
 	if r.URL.Path == "/grade/vocab" {
+
 		VocabUserSession := VocabUserSessions[UserSession]
-		UserVocabWrongAnswerIndex := []int{}
-		for question_number := range VocabUserSession.WrongAnswers {
-			UserVocabWrongAnswerIndex = append(UserVocabWrongAnswerIndex, question_number-1)
-		}
 		QuestionList := VocabUserSession.QuestionList
-		UserVocabWrongAnswers := map[string][]string{}
-		fmt.Println("This is it", UserVocabWrongAnswerIndex)
-		for _, val := range UserVocabWrongAnswerIndex {
-			UserVocabWrongAnswers["wrong_question"] = append(UserVocabWrongAnswers["wrong_question"], QuestionList[val].Question)
-			UserVocabWrongAnswers["image_link"] = append(UserVocabWrongAnswers["image_link"], QuestionList[val].Image_link)
-			UserVocabWrongAnswers["correct_answer"] = append(UserVocabWrongAnswers["correct_answer"], strings.Join(QuestionList[val].Question_answer, ", "))
-		}
+		UserVocabWrongAnswers := GradeDataToHTML{QuestionType: "vocab", QuestionData: QuestionList}
 		TPL.ExecuteTemplate(w, "grade.html", UserVocabWrongAnswers)
+
 	} else if r.URL.Path == "/grade/trans" {
+
 		TransUserSession := TransUserSessions[UserSession]
-		UserTransAnswerIndex := []int{}
-		for question_number := range TransUserSession.WrongAnswers {
-			UserTransAnswerIndex = append(UserTransAnswerIndex, question_number-1)
-		}
 		QuestionList := TransUserSession.QuestionList
-		UserTransAnswers := map[string][]string{}
-		fmt.Println("Trans Questions asked", UserTransAnswerIndex)
-		for _, val := range UserTransAnswerIndex {
-			UserTransAnswers["user_trans_answer"] = append(UserTransAnswers["user_trans_answer"], QuestionList[val].Question)
-			UserTransAnswers["grammar_to_use"] = append(UserTransAnswers["grammar_to_use"], QuestionList[val].TransHelperGrammar)
-			UserTransAnswers["correct_answer"] = append(UserTransAnswers["correct_answer"], strings.Join(QuestionList[val].Question_answer, "/\n "))
-		}
+		UserTransAnswers := GradeDataToHTML{QuestionType: "trans", QuestionData: QuestionList}
 		TPL.ExecuteTemplate(w, "grade.html", UserTransAnswers)
+
 	}
 }
 

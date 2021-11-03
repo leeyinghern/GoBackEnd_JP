@@ -1,0 +1,18 @@
+{{define "trans_result_body"}}
+<center>
+    Sentence Translation Results here <br>
+    {{range index .QuestionData}}
+        <table>
+            <tr>
+                <td>Question: {{.Question}}</td>
+                <td>Grammar to use: {{.TransHelperGrammar}}</td>
+                <td>Words to be included: {{.TransHelperWords}}</td>
+                <td>Your Answer: {{.UserAnswer}}</td>
+                <td>Correct Answer: {{.Question_answer}}</td>
+            </tr>
+        </table>
+    {{end}}
+    <button onclick="location.href='/menu';"> Take a New Test </button>
+</center>
+
+{{end}}

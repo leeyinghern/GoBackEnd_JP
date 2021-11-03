@@ -28,8 +28,7 @@ func ServeTransQuestionToUser(w http.ResponseWriter, r *http.Request) {
 		CacheUserAnswer(w, r, cookie, &CurrentUserQuestion, &UserSession, &UserQuestionNumber, &TransQuestions, "trans_qns")
 	} else {
 		UserAnswer := r.PostFormValue("user_answer")
-		TransUserSessions[UserSession].WrongAnswers[UserQuestionNumber] = UserAnswer
-		// }
+		TransUserSessions[UserSession].QuestionList[UserQuestionNumber-1].UserAnswer = UserAnswer
 		http.Redirect(w, r, "/grade/trans", http.StatusSeeOther)
 	}
 
@@ -40,7 +39,7 @@ func CacheTransAnswer(w *http.ResponseWriter, r *http.Request, TransQuestions []
 	if r.Method == http.MethodPost {
 		UserAnswer := r.PostFormValue("user_answer")
 
-		TransUserSessions[UserSession].WrongAnswers[UserQuestionNumber] = UserAnswer
+		TransUserSessions[UserSession].QuestionList[UserQuestionNumber-1].UserAnswer = UserAnswer
 		CurrentUserQuestion := TransQuestions[UserQuestionNumber]
 
 		NextQuestion := map[string]string{
