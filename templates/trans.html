@@ -21,6 +21,8 @@
         {{$new_url := index . "next_url"}} <br>
         <br>
         <h4> 質問: {{index . "question"}}</h4>  <br>
+        <h4>この単語を使って下さい: {{index . "helper_words"}}</h4>
+        <h4>この文法を使って下さい: {{index . "helper_grammar"}}</h4>
         <form action="/trans/" method="POST">
             <h4>ここで答えを書いてください: <input type="text" placeholder="答え" name="user_answer"></h4>
             <button type="submit" onclick={{$new_url}}> {{index . `button_value`}} </button>

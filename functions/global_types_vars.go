@@ -15,7 +15,7 @@ type Question struct {
 	Question_answer    []string `json:"answers"`
 	QuestionType       string   `json:"question_type"`
 	TransHelperGrammar string   `json:"grammar_to_use"`
-	TransHelperWords   string   `json:"helper_words"`
+	TransHelperWords   []string `json:"helper_words"`
 }
 
 var TPL *template.Template

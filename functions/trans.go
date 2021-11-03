@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 func ServeTransQuestionToUser(w http.ResponseWriter, r *http.Request) {
@@ -38,24 +39,16 @@ func CacheTransAnswer(w *http.ResponseWriter, r *http.Request, TransQuestions []
 	UserSession string, button_val string, UserQuestionNumber int) {
 	if r.Method == http.MethodPost {
 		UserAnswer := r.PostFormValue("user_answer")
-		// CorrectAnswer := QuestionPassed.Question_answer
-		// var UserCorrect = false
-		// for _, val := range CorrectAnswer {
-		// 	if val == UserAnswer {
-		// 		UserCorrect = true
-		// 	}
-		// }
-		// if !UserCorrect {
-		// 	TransUserSessions[UserSession].WrongAnswers[UserQuestionNumber] = UserAnswer
-		// }
+
 		TransUserSessions[UserSession].WrongAnswers[UserQuestionNumber] = UserAnswer
 		CurrentUserQuestion := TransQuestions[UserQuestionNumber]
 
 		NextQuestion := map[string]string{
-			"question":     CurrentUserQuestion.Question,
-			"next_url":     fmt.Sprintf("location.href='/trans/%s';", strconv.Itoa(UserQuestionNumber)),
-			"image":        CurrentUserQuestion.Image_link,
-			"button_value": button_val,
+			"question":       CurrentUserQuestion.Question,
+			"next_url":       fmt.Sprintf("location.href='/trans/%s';", strconv.Itoa(UserQuestionNumber)),
+			"helper_grammar": CurrentUserQuestion.TransHelperGrammar,
+			"helper_words":   "[" + strings.Join(CurrentUserQuestion.TransHelperWords, "  ;   ") + "]",
+			"button_value":   button_val,
 		}
 
 		TPL.ExecuteTemplate(*w, "trans.html", NextQuestion)
@@ -63,10 +56,11 @@ func CacheTransAnswer(w *http.ResponseWriter, r *http.Request, TransQuestions []
 		// Serve the first question to the user
 		CurrentUserQuestion := TransQuestions[UserQuestionNumber]
 		FirstQuestion := map[string]string{
-			"question":     CurrentUserQuestion.Question,
-			"next_url":     fmt.Sprintf("location.href='/trans/%s';", strconv.Itoa(UserQuestionNumber)),
-			"image":        CurrentUserQuestion.Image_link,
-			"button_value": button_val,
+			"question":       CurrentUserQuestion.Question,
+			"next_url":       fmt.Sprintf("location.href='/trans/%s';", strconv.Itoa(UserQuestionNumber)),
+			"helper_grammar": CurrentUserQuestion.TransHelperGrammar,
+			"helper_words":   "[" + strings.Join(CurrentUserQuestion.TransHelperWords, "  ;  ") + "]",
+			"button_value":   button_val,
 		}
 		// Render template here
 		TPL.ExecuteTemplate(*w, "trans.html", FirstQuestion)
