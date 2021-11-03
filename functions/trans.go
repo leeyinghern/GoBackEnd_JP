@@ -38,16 +38,17 @@ func CacheTransAnswer(w *http.ResponseWriter, r *http.Request, TransQuestions []
 	UserSession string, button_val string, UserQuestionNumber int) {
 	if r.Method == http.MethodPost {
 		UserAnswer := r.PostFormValue("user_answer")
-		CorrectAnswer := QuestionPassed.Question_answer
-		var UserCorrect = false
-		for _, val := range CorrectAnswer {
-			if val == UserAnswer {
-				UserCorrect = true
-			}
-		}
-		if !UserCorrect {
-			TransUserSessions[UserSession].WrongAnswers[UserQuestionNumber] = UserAnswer
-		}
+		// CorrectAnswer := QuestionPassed.Question_answer
+		// var UserCorrect = false
+		// for _, val := range CorrectAnswer {
+		// 	if val == UserAnswer {
+		// 		UserCorrect = true
+		// 	}
+		// }
+		// if !UserCorrect {
+		// 	TransUserSessions[UserSession].WrongAnswers[UserQuestionNumber] = UserAnswer
+		// }
+		TransUserSessions[UserSession].WrongAnswers[UserQuestionNumber] = UserAnswer
 		CurrentUserQuestion := TransQuestions[UserQuestionNumber]
 
 		NextQuestion := map[string]string{
